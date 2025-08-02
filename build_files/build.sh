@@ -31,7 +31,7 @@ dnf5 install -y \
 ### Audio workstation START
 dnf5 -y copr enable patrickl/wine-tkg
 sed -i 'enabled=1/a priority=98' /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:patrickl:wine-tkg.repo
-dnf5 dnf clean all
+dnf5 clean all
 dnf5 install install wine.x86_64 wine.i686 wine-mono mingw32-wine-gecko mingw64-wine-gecko wine-dxvk winetricks yabridge libcurl-gnutls --refresh
 dnf5 install pipewire-wineasio pipewire-jack-audio-connection-kit --allowerasing
 ### Audio workstation END
