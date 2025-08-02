@@ -83,8 +83,7 @@ stream.properties = {
 EOF
 
 # Create script to prevent apps from stealing realtime priority
-mkdir -p /usr/local/bin
-cat > /usr/local/bin/audio-rt-prio-fix.sh <<'EOF'
+cat > /usr/bin/audio-rt-prio-fix.sh <<'EOF'
 #!/bin/bash
 # Script by Robbert (yabridge developer) to prevent apps from stealing RT priority
 # Run this before starting your DAW
@@ -122,10 +121,10 @@ else
     echo "$need_rescheduling" | xargs -I{} chrt -v -o -p 0 {}
 fi
 EOF
-chmod +x /usr/local/bin/audio-rt-prio-fix.sh
+chmod +x /usr/bin/audio-rt-prio-fix.sh
 
 # Create script to configure kernel parameters after deployment
-cat > /usr/local/bin/audio-setup-kernel.sh <<'EOF'
+cat > /usr/bin/audio-setup-kernel.sh <<'EOF'
 #!/bin/bash
 # Script to configure kernel parameters for audio on bootc/ostree systems
 
@@ -154,9 +153,9 @@ fi
 echo -e "\nRealtime services status:"
 systemctl status realtime-setup.service realtime-entsk.service --no-pager | grep -E "(●|Active:)"
 
-echo -e "\nTo test audio latency, run: /usr/local/bin/audio-rt-prio-fix.sh before starting your DAW"
+echo -e "\nTo test audio latency, run: /usr/bin/audio-rt-prio-fix.sh before starting your DAW"
 EOF
-chmod +x /usr/local/bin/audio-setup-kernel.sh
+chmod +x /usr/bin/audio-setup-kernel.sh
 
 # Create systemd service to add users to realtime group on first boot
 cat > /etc/systemd/system/add-user-to-realtime.service <<'EOF'
