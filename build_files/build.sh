@@ -16,7 +16,6 @@ dnf5 install -y \
 	systemd-devel \
 	realtime-setup \
 	tmux \
-	libudev \
 	mise \
 	qemu \
 	iotop \
