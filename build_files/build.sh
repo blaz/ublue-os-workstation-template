@@ -58,10 +58,9 @@ systemctl enable tuned.service
 # Create realtime group if it doesn't exist
 groupadd -f realtime
 
-# Configure kernel parameters for audio (threadirqs)
-if ! grep -q "threadirqs" /etc/default/grub; then
-    sed -i 's/GRUB_CMDLINE_LINUX="\(.*\)"/GRUB_CMDLINE_LINUX="\1 threadirqs"/' /etc/default/grub
-fi
+# Note: Kernel parameters like threadirqs need to be added manually after deployment
+# In bootc/ostree systems, use: rpm-ostree kargs --append="threadirqs"
+# Or add to your bootloader configuration
 
 # Set tuned profile to realtime
 mkdir -p /etc/tuned
@@ -124,6 +123,40 @@ else
 fi
 EOF
 chmod +x /usr/local/bin/audio-rt-prio-fix.sh
+
+# Create script to configure kernel parameters after deployment
+cat > /usr/local/bin/audio-setup-kernel.sh <<'EOF'
+#!/bin/bash
+# Script to configure kernel parameters for audio on bootc/ostree systems
+
+if ! grep -q "threadirqs" /proc/cmdline; then
+    echo "Adding threadirqs kernel parameter..."
+    if command -v rpm-ostree >/dev/null 2>&1; then
+        sudo rpm-ostree kargs --append="threadirqs"
+        echo "Kernel parameter added. Please reboot for changes to take effect."
+    else
+        echo "Manual configuration required. Add 'threadirqs' to your kernel parameters."
+        echo "Current parameters: $(cat /proc/cmdline)"
+    fi
+else
+    echo "threadirqs already configured in kernel parameters."
+fi
+
+# Check if user is in realtime group
+if ! groups | grep -q realtime; then
+    echo "You are not in the realtime group. Run: sudo usermod -a -G realtime $USER"
+    echo "Then logout and login again."
+else
+    echo "You are in the realtime group. ✓"
+fi
+
+# Check realtime services
+echo -e "\nRealtime services status:"
+systemctl status realtime-setup.service realtime-entsk.service --no-pager | grep -E "(●|Active:)"
+
+echo -e "\nTo test audio latency, run: /usr/local/bin/audio-rt-prio-fix.sh before starting your DAW"
+EOF
+chmod +x /usr/local/bin/audio-setup-kernel.sh
 
 # Create systemd service to add users to realtime group on first boot
 cat > /etc/systemd/system/add-user-to-realtime.service <<'EOF'
