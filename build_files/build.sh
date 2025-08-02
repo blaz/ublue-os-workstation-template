@@ -13,6 +13,7 @@ set -ouex pipefail
 dnf5 -y copr enable jdxcode/mise
 
 dnf5 install -y \
+	systemd-devel \
 	realtime-setup \
 	tmux \
 	libudev \
