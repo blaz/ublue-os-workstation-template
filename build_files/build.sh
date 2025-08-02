@@ -55,8 +55,12 @@ systemctl enable tuned.service
 
 ### Audio optimization configuration START
 
-# Create realtime group if it doesn't exist
-groupadd -f realtime
+# Create realtime group using systemd sysusers.d (proper way for ostree systems)
+mkdir -p /usr/lib/sysusers.d
+cat > /usr/lib/sysusers.d/realtime.conf <<'EOF'
+# Create realtime group for audio applications
+g realtime - - -
+EOF
 
 # Note: Kernel parameters like threadirqs need to be added manually after deployment
 # In bootc/ostree systems, use: rpm-ostree kargs --append="threadirqs"
@@ -161,11 +165,12 @@ chmod +x /usr/bin/audio-setup-kernel.sh
 cat > /etc/systemd/system/add-user-to-realtime.service <<'EOF'
 [Unit]
 Description=Add primary user to realtime group
-After=multi-user.target
+After=multi-user.target systemd-sysusers.service
+Requires=systemd-sysusers.service
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c 'for user in $(getent passwd | awk -F: "$3 >= 1000 && $3 < 60000 {print $1}"); do usermod -a -G realtime $user; done'
+ExecStart=/bin/bash -c 'for user in $(getent passwd | awk -F: "\$3 >= 1000 && \$3 < 60000 {print \$1}"); do usermod -a -G realtime \$user 2>/dev/null || true; done'
 RemainAfterExit=yes
 
 [Install]
