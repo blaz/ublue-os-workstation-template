@@ -13,6 +13,7 @@ set -ouex pipefail
 dnf5 -y copr enable jdxcode/mise
 
 dnf5 install -y \
+	realtime-setup \
 	tmux \
 	libudev \
 	mise \
@@ -27,6 +28,14 @@ dnf5 install -y \
 	lftp \
 	neovim
 
+### Audio workstation START
+dnf5 -y copr enable patrickl/wine-tkg
+sed -i 'enabled=1/a priority=98' /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:patrickl:wine-tkg.repo
+dnf5 dnf clean all
+dnf5 install install wine.x86_64 wine.i686 wine-mono mingw32-wine-gecko mingw64-wine-gecko wine-dxvk winetricks yabridge libcurl-gnutls --refresh
+dnf5 install pipewire-wineasio pipewire-jack-audio-connection-kit --allowerasing
+### Audio workstation END
+
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
@@ -37,3 +46,5 @@ dnf5 install -y \
 #### Example for enabling a System Unit File
 
 systemctl enable podman.socket
+systemctl enable realtime-setup.service
+systemctl enable realtime-entsk.service
